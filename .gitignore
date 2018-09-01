@@ -9,3 +9,4 @@ android.iml
 .gradle/
 android/assets/*
 .vscode/
+venv/
