@@ -10,3 +10,6 @@ android.iml
 android/assets/*
 .vscode/
 venv/
+tmp/
+.env
+
