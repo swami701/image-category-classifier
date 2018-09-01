@@ -168,11 +168,11 @@ class LabelImage(flask_restful.Resource, mixins.RegisterableMixin):
         args = parser.parse_args()
         url = args['url']
         type = args['type']
-        print(url)
-        print(type)
         if type == 'url':
+          # Filename with uuid
           uid = str(uuid.uuid1())
           fileName = 'tmp/{}.jpg'.format(uid)
+          # Downloading and Saving the file to a local tmp directory
           urlretrieve(args['url'],fileName)
         else:
           fileName = url

@@ -8,7 +8,4 @@ logging.basicConfig(
         format='%(asctime)-15s - %(name)s - %(levelname)s - %(message)s')
 
 if __name__ == '__main__':
-    if os.getenv('PROGRAM_NAME', 'app') == 'app':
-        app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000))
-    else:
-        scripts.label_image.main()
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
