@@ -16,8 +16,14 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from flask_restful import reqparse
 
+import flask_restful
+import flask
+import mixins
 import argparse
+from urllib import urlretrieve
+import uuid
 import sys
 import time
 
@@ -67,8 +73,9 @@ def load_labels(label_file):
     label.append(l.rstrip())
   return label
 
-if __name__ == "__main__":
-  file_name = "tf_files/flower_photos/daisy/3475870145_685a19116d.jpg"
+def main(file_name, type):
+  try: file_name
+  except NameError: file_name = "tf_files/hdb_faclities/Lighting Mainteinance/80.png"
   model_file = "tf_files/retrained_graph.pb"
   label_file = "tf_files/retrained_labels.txt"
   input_height = 224
@@ -132,6 +139,50 @@ if __name__ == "__main__":
   labels = load_labels(label_file)
 
   print('\nEvaluation time (1-image): {:.3f}s\n'.format(end-start))
-  template = "{} (score={:0.5f})"
-  for i in top_k:
-    print(template.format(labels[i], results[i]))
+  # template = "{} (score={:0.5f})"
+  # for i in top_k:
+  #   print(template.format(labels[i], results[i]))
+  score = "{:0.5f}"
+  return {
+    'result':[{
+      'category': labels[i],
+      'score': score.format(results[i])
+    }for i in top_k]
+  }
+
+class LabelImage(flask_restful.Resource, mixins.RegisterableMixin):
+    url = '/classify'
+    def get(self):
+      try:
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            'url',
+            required=True,
+            help='Image URL required'
+            )
+        parser.add_argument(
+            'type',
+            required=True,
+            help='Type of the file url or local'
+            )
+        args = parser.parse_args()
+        url = args['url']
+        type = args['type']
+        print(url)
+        print(type)
+        if type == 'url':
+          uid = str(uuid.uuid1())
+          fileName = 'tmp/{}.jpg'.format(uid)
+          urlretrieve(args['url'],fileName)
+        else:
+          fileName = url
+        result = main(fileName, type)
+        resp = flask.jsonify(result)
+        resp.statusCode = 200
+      except Exception as e:
+        result = { 'status': 'error',
+                  'message': str(e) }
+        resp = flask.jsonify(result)
+        resp.status_code = 500
+      return resp
+
